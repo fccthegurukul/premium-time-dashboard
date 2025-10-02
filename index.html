@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Time Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0a0f;
+            --secondary-bg: #111218;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --neon-primary: #00d4ff;
+            --neon-secondary: #ff0080;
+            --neon-tertiary: #00ff88;
+            --neon-warning: #ffaa00;
+            --accent-gradient: linear-gradient(135deg, #00d4ff, #ff0080);
+            --success-glow: #00ff88;
+            --text-primary: #ffffff;
+            --text-secondary: #b8c5d1;
+            --text-muted: #6b7280;
+            --shadow-neon: 0 0 30px rgba(0, 212, 255, 0.3);
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a0f 70%);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 128, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Optimized dashboard grid for no-scroll layout */
+        .dashboard {
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+        }
+
+        /* Adjusted main section grid to give less space to clock */
+        .main-section {
+            display: grid;
+            grid-template-rows: auto auto minmax(0, 1fr) auto;
+            gap: 0.6rem;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .clock-header {
+            text-align: center;
+            padding: 0.2rem 0;
+        }
+
+        /* Reduced clock title size */
+        .clock-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+            letter-spacing: 0.1em;
+        }
+
+        /* Reduced padding for more compact clock area */
+        .main-clock-area {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 0.6rem;
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 0;
+            overflow: hidden;
+            box-shadow: var(--shadow-glass);
+        }
+
+        /* Reduced gaps and margins for compact clock */
+        .flip-container {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            margin-bottom: 0.4rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .flip-group {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        /* Reduced separator size */
+        .flip-separator {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--neon-primary);
+            text-shadow: 0 0 30px var(--neon-primary);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; text-shadow: 0 0 30px var(--neon-primary); }
+            50% { opacity: 0.7; text-shadow: 0 0 50px var(--neon-primary); }
+        }
+
+        /* Significantly reduced flip card size */
+        .flip-card {
+            width: 50px;
+            height: 65px;
+            position: relative;
+            transform: translateZ(0);
+            will-change: auto;
+        }
+
+        .flip-card.ms-card {
+            width: 45px;
+            height: 55px;
+        }
+
+        .flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                inset 0 2px 0 rgba(255, 255, 255, 0.1),
+                0 4px 25px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(0, 212, 255, 0.3);
+            overflow: hidden;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        .flip-inner:hover {
+            box-shadow: 
+                inset 0 2px 0 rgba(255, 255, 255, 0.1),
+                0 8px 35px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(0, 212, 255, 0.5),
+                0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .flip-top, .flip-bottom {
+            height: 50%;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(255, 0, 128, 0.1));
+        }
+
+        .flip-top {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+        }
+
+        /* Reduced font size for flip cards */
+        .flip-face {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 200%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Grotesk', monospace;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            transition: opacity 0.3s ease, color 0.3s ease;
+            will-change: contents;
+            backface-visibility: hidden;
+        }
+
+        .flip-card.ms-card .flip-face {
+            font-size: 1.2rem;
+        }
+
+        .flip-top .flip-face {
+            top: 0;
+        }
+
+        .flip-bottom .flip-face {
+            top: -100%;
+        }
+
+        @keyframes textFade {
+            0% { 
+                opacity: 0; 
+                transform: translateY(3px) scale(0.98);
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .text-animate {
+            animation: textFade 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .clock-labels {
+            display: flex;
+            gap: 0.8rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        /* Optimized time cards section for better fit */
+        .time-cards-section {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1rem;
+            backdrop-filter: blur(15px);
+            min-height: 0;
+            overflow: hidden;
+            box-shadow: var(--shadow-glass);
+        }
+
+        .time-cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr auto;
+            gap: 0.8rem;
+            height: 100%;
+        }
+
+        .time-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 0.8rem;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            transform: translateZ(0);
+            will-change: auto;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: var(--transition);
+        }
+
+        .time-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .time-card.age {
+            border-color: rgba(255, 0, 128, 0.2);
+            background: rgba(255, 0, 128, 0.05);
+        }
+
+        .time-card.target {
+            border-color: rgba(255, 170, 0, 0.2);
+            background: rgba(255, 170, 0, 0.05);
+        }
+
+
+        .time-card.midnight {
+            border-color: rgba(0, 255, 136, 0.2);
+            background: rgba(0, 255, 136, 0.05);
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .midnight-content {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 1rem;
+            flex: 1;
+            align-items: center;
+        }
+
+        .time-card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+            text-shadow: 0 0 15px currentColor;
+            line-height: 1.2;
+            flex-shrink: 0;
+        }
+
+        .time-card.age .time-card-title {
+            color: var(--neon-secondary);
+        }
+
+        .time-card.target .time-card-title {
+            color: var(--neon-warning);
+        }
+
+        .time-card.midnight .time-card-title {
+            color: var(--neon-tertiary);
+        }
+
+        .time-values-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            flex: 1;
+            align-content: start;
+        }
+
+        .time-card.midnight .time-values-grid {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .time-item {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform: translateZ(0);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .time-item:hover {
+            background: rgba(0, 0, 0, 0.4);
+            transform: scale(1.02);
+        }
+
+        .time-value {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            text-shadow: 0 0 10px currentColor;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.3s ease, text-shadow 0.3s ease, opacity 0.3s ease;
+            will-change: contents;
+        }
+
+        .time-label {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            margin-top: 0.2rem;
+            line-height: 1;
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+
+        /* Optimized gallery to fit within the midnight card */
+        .photo-gallery {
+            margin: 0.6rem 0;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            height: 140px;
+            background: linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1));
+            backdrop-filter: blur(10px);
+        }
+
+        .gallery-container {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            height: 100%;
+        }
+
+        .gallery-slide {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gallery-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+            filter: brightness(0.8) contrast(1.2);
+            transition: all 0.3s ease;
+        }
+
+        .gallery-slide:hover img {
+            transform: scale(1.05);
+            filter: brightness(0.9) contrast(1.3);
+        }
+
+        .gallery-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .gallery-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-dot.active {
+            background: var(--neon-tertiary);
+            transform: scale(1.3);
+            box-shadow: 0 0 10px var(--neon-tertiary);
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .photo-gallery:hover .gallery-nav {
+            opacity: 1;
+        }
+
+        .gallery-prev {
+            left: 8px;
+        }
+
+        .gallery-next {
+            right: 8px;
+        }
+
+        /* Reduced status bar size */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 0.6rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--neon-tertiary);
+            box-shadow: 0 0 15px var(--neon-tertiary);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.7; }
+        }
+
+        /* Optimized tasks section */
+        .tasks-section {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.2rem;
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            box-shadow: var(--shadow-glass);
+        }
+
+        .tasks-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .tasks-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--neon-tertiary), var(--neon-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .sort-btn {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: var(--neon-primary);
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .sort-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .task-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+            min-height: 0;
+        }
+
+        .task-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .task-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.5);
+            border-radius: 3px;
+        }
+
+        .task-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: var(--transition);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .task-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-primary), transparent);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .task-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(0, 212, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-item:hover::before {
+            opacity: 1;
+        }
+
+        .task-item.completed {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .task-item.completed::before {
+            background: linear-gradient(90deg, transparent, var(--neon-tertiary), transparent);
+            opacity: 1;
+        }
+
+        .task-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .task-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .task-checkbox {
+            width: 26px;
+            height: 26px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        .task-checkbox:hover {
+            border-color: var(--neon-primary);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .task-checkbox.checked {
+            background: var(--neon-tertiary);
+            border-color: var(--neon-tertiary);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .checkmark {
+            color: var(--primary-bg);
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .add-task-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .input-field {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.6rem;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--neon-primary);
+            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        .add-btn {
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem;
+            color: var(--primary-bg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.85rem;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .flip-card {
+                width: 45px;
+                height: 60px;
+            }
+            
+            .flip-face {
+                font-size: 1.5rem;
+            }
+            
+            .flip-separator {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr 260px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr auto;
+                gap: 0.6rem;
+            }
+            
+            .tasks-section {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="main-section">
+            <div class="clock-header">
+                <h1 class="clock-title">Time</h1>
+            </div>
+            
+            <div class="main-clock-area">
+                <div class="flip-container">
+                    <div class="flip-group" id="hours-group"></div>
+                    <div class="flip-separator">:</div>
+                    <div class="flip-group" id="minutes-group"></div>
+                    <div class="flip-separator">:</div>
+                    <div class="flip-group" id="seconds-group"></div>
+                    <div class="flip-separator">.</div>
+                    <div class="flip-card ms-card" id="ms-card">
+                        <div class="flip-inner">
+                            <div class="flip-top">
+                                <div class="flip-face" id="ms-top">000</div>
+                            </div>
+                            <div class="flip-bottom">
+                                <div class="flip-face" id="ms-bottom">000</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="clock-labels">
+                    <span>Hours</span>
+                    <span>Minutes</span>
+                    <span>Seconds</span>
+                    <span>MS</span>
+                </div>
+            </div>
+
+            <div class="time-cards-section">
+                <div class="time-cards-grid">
+                    <div class="time-card age">
+                        <div class="time-card-title">Time Lived</div>
+                        <div class="time-values-grid">
+                            <div class="time-item">
+                                <div class="time-value" id="age-years" style="color: var(--neon-secondary);">0</div>
+                                <div class="time-label">Years</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="age-days" style="color: var(--neon-secondary);">0</div>
+                                <div class="time-label">Days</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="age-hours" style="color: var(--neon-secondary);">0</div>
+                                <div class="time-label">Hours</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="age-minutes" style="color: var(--neon-secondary);">0</div>
+                                <div class="time-label">Minutes</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="age-seconds" style="color: var(--neon-secondary);">0</div>
+                                <div class="time-label">Seconds</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="age-ms" style="color: var(--neon-secondary);">0</div>
+                                <div class="time-label">MS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="time-card target">
+                        <div class="time-card-title">Time Left to Goal (1/1/2026)</div>
+                        <div class="time-values-grid">
+                            <div class="time-item">
+                                <div class="time-value" id="target-months" style="color: var(--neon-warning);">0</div>
+                                <div class="time-label">Months</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="target-days" style="color: var(--neon-warning);">0</div>
+                                <div class="time-label">Days</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="target-hours" style="color: var(--neon-warning);">0</div>
+                                <div class="time-label">Hours</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="target-minutes" style="color: var(--neon-warning);">0</div>
+                                <div class="time-label">Minutes</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="target-seconds" style="color: var(--neon-warning);">0</div>
+                                <div class="time-label">Seconds</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="target-ms" style="color: var(--neon-warning);">0</div>
+                                <div class="time-label">MS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="time-card midnight">
+                        <div class="time-card-title">🌙 Time Left Today Goal</div>
+                        
+                        <!-- Photo Gallery Section -->
+                        <div class="photo-gallery" id="photoGallery">
+                            <div class="gallery-container" id="galleryContainer">
+                                <div class="gallery-slide"><img src="assets/1.jpg" alt="Photo 1"></div>
+                                <div class="gallery-slide"><img src="assets/2.jpg" alt="Photo 2"></div>
+                                <div class="gallery-slide"><img src="assets/3.jpg" alt="Photo 3"></div>
+                                <div class="gallery-slide"><img src="assets/4.jpg" alt="Photo 4"></div>
+                                <div class="gallery-slide"><img src="assets/5.jpg" alt="Photo 5"></div>
+                                <div class="gallery-slide"><img src="assets/6.jpg" alt="Photo 6"></div>
+                                <div class="gallery-slide"><img src="assets/7.jpg" alt="Photo 7"></div>
+                                <div class="gallery-slide"><img src="assets/8.jpg" alt="Photo 8"></div>
+                                <div class="gallery-slide"><img src="assets/9.jpg" alt="Photo 9"></div>
+                            </div>
+                            
+                            <button class="gallery-nav gallery-prev" onclick="prevSlide()">◀</button>
+                            <button class="gallery-nav gallery-next" onclick="nextSlide()">▶</button>
+                            
+                            <div class="gallery-controls" id="galleryDots"></div>
+                        </div>
+                        
+                        <div class="time-values-grid">
+                            <div class="time-item">
+                                <div class="time-value" id="midnight-hours" style="color: var(--neon-tertiary);">0</div>
+                                <div class="time-label">Hours</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="midnight-minutes" style="color: var(--neon-tertiary);">0</div>
+                                <div class="time-label">Minutes</div>
+                            </div>
+                            <div class="time-item">
+                                <div class="time-value" id="midnight-seconds" style="color: var(--neon-tertiary);">0</div>
+                                <div class="time-label">Seconds</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-bar">
+                <div class="status-indicator"></div>
+                <span>Live Clock</span>
+                <span id="timezone">IST</span>
+            </div>
+        </div>
+
+        <div class="tasks-section">
+            <div class="tasks-header">
+                <h2 class="tasks-title">Daily Tasks</h2>
+                <button class="sort-btn" id="sort-btn">All mixed</button>
+            </div>
+            
+            <div class="task-list" id="task-list"></div>
+            
+            <div class="add-task-form">
+                <input type="text" class="input-field" id="task-title" placeholder="Task title">
+                <input type="text" class="input-field" id="task-count" placeholder="Count">
+                <button class="add-btn" id="add-btn">Add Task</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            const birthDate = new Date(2003, 9, 23);
+            const targetDate = new Date(2026, 0, 1);
+            
+            const defaultTasks = [
+                {id: 1, title: 'fccthegurukul.in: 10 POST', count: '10 POST', done: false},
+                {id: 2, title: 'ResultBuz.com: 10 POST', count: '10 POST', done: false},
+                {id: 3, title: '10th by FCC: 1 Video REC', count: '1 Video REC', done: false},
+                {id: 4, title: 'Reel - 1 Video', count: '1 Video', done: false},
+                {id: 5, title: '4VID Publish INSTAGRAM', count: '4 VID', done: false},
+                {id: 6, title: 'Current Affairs POST DAILY', count: 'DAILY', done: false}
+            ];
+
+            const STORAGE_KEY = 'premium_time_dashboard';
+            
+            function loadTasks() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    return stored ? JSON.parse(stored) : defaultTasks;
+                } catch (e) {
+                    return defaultTasks;
+                }
+            }
+            
+            function saveTasks(tasks) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+            }
+
+            let tasks = loadTasks();
+
+            function createFlipCard(value = '00') {
+                const card = document.createElement('div');
+                card.className = 'flip-card';
+                card.innerHTML = `
+                    <div class="flip-inner">
+                        <div class="flip-top">
+                            <div class="flip-face">${value}</div>
+                        </div>
+                        <div class="flip-bottom">
+                            <div class="flip-face">${value}</div>
+                        </div>
+                    </div>
+                `;
+                return card;
+            }
+
+            function padZero(num, length = 2) {
+                return num.toString().padStart(length, '0');
+            }
+
+            function formatNumber(num) {
+                return num.toLocaleString();
+            }
+
+            function initializeClock() {
+                const hoursGroup = document.getElementById('hours-group');
+                const minutesGroup = document.getElementById('minutes-group');
+                const secondsGroup = document.getElementById('seconds-group');
+
+                hoursGroup.appendChild(createFlipCard('0'));
+                hoursGroup.appendChild(createFlipCard('0'));
+                minutesGroup.appendChild(createFlipCard('0'));
+                minutesGroup.appendChild(createFlipCard('0'));
+                secondsGroup.appendChild(createFlipCard('0'));
+                secondsGroup.appendChild(createFlipCard('0'));
+            }
+
+            function flipCard(card, newValue) {
+                const topFace = card.querySelector('.flip-top .flip-face');
+                const bottomFace = card.querySelector('.flip-bottom .flip-face');
+
+                if (topFace.textContent === newValue) return;
+
+                topFace.style.opacity = '0.7';
+                bottomFace.style.opacity = '0.7';
+                
+                setTimeout(() => {
+                    topFace.textContent = newValue;
+                    bottomFace.textContent = newValue;
+                    
+                    topFace.classList.remove('text-animate');
+                    bottomFace.classList.remove('text-animate');
+                    
+                    topFace.style.opacity = '1';
+                    bottomFace.style.opacity = '1';
+                    topFace.classList.add('text-animate');
+                    bottomFace.classList.add('text-animate');
+                }, 100);
+            }
+
+            function updateTimeValue(elementId, newValue) {
+                const element = document.getElementById(elementId);
+                if (element && element.textContent !== newValue) {
+                    element.style.opacity = '0.6';
+                    setTimeout(() => {
+                        element.textContent = newValue;
+                        element.style.opacity = '1';
+                        element.classList.add('text-animate');
+                    }, 100);
+                }
+            }
+
+            function updateAge() {
+                const now = new Date();
+                const ageMs = now.getTime() - birthDate.getTime();
+                
+                const years = Math.floor(ageMs / (365.25 * 24 * 60 * 60 * 1000));
+                const days = Math.floor(ageMs / (24 * 60 * 60 * 1000));
+                const hours = Math.floor(ageMs / (60 * 60 * 1000));
+                const minutes = Math.floor(ageMs / (60 * 1000));
+                const seconds = Math.floor(ageMs / 1000);
+                const milliseconds = Math.floor(ageMs);
+
+                updateTimeValue('age-years', years);
+                updateTimeValue('age-days', formatNumber(days));
+                updateTimeValue('age-hours', formatNumber(hours));
+                updateTimeValue('age-minutes', formatNumber(minutes));
+                updateTimeValue('age-seconds', formatNumber(seconds));
+                updateTimeValue('age-ms', formatNumber(milliseconds));
+            }
+
+            function updateTarget() {
+                const now = new Date();
+                const targetMs = targetDate.getTime() - now.getTime();
+                
+                if (targetMs <= 0) {
+                    updateTimeValue('target-months', '0');
+                    updateTimeValue('target-days', '0');
+                    updateTimeValue('target-hours', '0');
+                    updateTimeValue('target-minutes', '0');
+                    updateTimeValue('target-seconds', '0');
+                    updateTimeValue('target-ms', '0');
+                    return;
+                }
+
+                const months = Math.floor(targetMs / (30.44 * 24 * 60 * 60 * 1000));
+                const days = Math.floor(targetMs / (24 * 60 * 60 * 1000));
+                const hours = Math.floor(targetMs / (60 * 60 * 1000));
+                const minutes = Math.floor(targetMs / (60 * 1000));
+                const seconds = Math.floor(targetMs / 1000);
+
+                updateTimeValue('target-months', months);
+                updateTimeValue('target-days', formatNumber(days));
+                updateTimeValue('target-hours', formatNumber(hours));
+                updateTimeValue('target-minutes', formatNumber(minutes));
+                updateTimeValue('target-seconds', formatNumber(seconds));
+                updateTimeValue('target-ms', formatNumber(Math.floor(targetMs)));
+            }
+
+            function updateMidnight() {
+                const now = new Date();
+                const nextMidnight = new Date(now);
+                nextMidnight.setDate(now.getDate() + 1);
+                nextMidnight.setHours(0, 0, 0, 0);
+                
+                const midnightMs = nextMidnight.getTime() - now.getTime();
+                
+                const hours = Math.floor(midnightMs / (60 * 60 * 1000));
+                const minutes = Math.floor((midnightMs % (60 * 60 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((midnightMs % (60 * 1000)) / 1000);
+
+                updateTimeValue('midnight-hours', hours);
+                updateTimeValue('midnight-minutes', minutes);
+                updateTimeValue('midnight-seconds', seconds);
+            }
+
+            function updateClock() {
+                const now = new Date();
+                const hours = padZero(now.getHours());
+                const minutes = padZero(now.getMinutes());
+                const seconds = padZero(now.getSeconds());
+                const milliseconds = padZero(now.getMilliseconds(), 3);
+
+                const hoursCards = Array.from(document.querySelectorAll('#hours-group .flip-card'));
+                const minutesCards = Array.from(document.querySelectorAll('#minutes-group .flip-card'));
+                const secondsCards = Array.from(document.querySelectorAll('#seconds-group .flip-card'));
+
+                if (hoursCards.length === 2) {
+                    flipCard(hoursCards[0], hours[0]);
+                    flipCard(hoursCards[1], hours[1]);
+                }
+
+                if (minutesCards.length === 2) {
+                    flipCard(minutesCards[0], minutes[0]);
+                    flipCard(minutesCards[1], minutes[1]);
+                }
+
+                if (secondsCards.length === 2) {
+                    flipCard(secondsCards[0], seconds[0]);
+                    flipCard(secondsCards[1], seconds[1]);
+                }
+
+                const msTop = document.getElementById('ms-top');
+                const msBottom = document.getElementById('ms-bottom');
+                if (msTop.textContent !== milliseconds) {
+                    msTop.style.opacity = '0.8';
+                    msBottom.style.opacity = '0.8';
+                    
+                    setTimeout(() => {
+                        msTop.textContent = milliseconds;
+                        msBottom.textContent = milliseconds;
+                        msTop.style.opacity = '1';
+                        msBottom.style.opacity = '1';
+                    }, 50);
+                }
+
+                updateAge();
+                updateTarget();
+                updateMidnight();
+                requestAnimationFrame(updateClock);
+            }
+
+            function renderTasks() {
+                const taskList = document.getElementById('task-list');
+                taskList.innerHTML = '';
+
+                const sortedTasks = tasks.slice().sort((a, b) => {
+                    return (a.done === b.done) ? 0 : (a.done ? 1 : -1);
+                });
+
+                sortedTasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = `task-item ${task.done ? 'completed' : ''}`;
+                    taskElement.innerHTML = `
+                        <div class="task-content">
+                            <div class="task-title">${escapeHtml(task.title)}</div>
+                            <div class="task-subtitle">${escapeHtml(task.count || '')}</div>
+                        </div>
+                        <div class="task-checkbox ${task.done ? 'checked' : ''}" data-id="${task.id}">
+                            ${task.done ? '<span class="checkmark">✓</span>' : ''}
+                        </div>
+                    `;
+
+                    const checkbox = taskElement.querySelector('.task-checkbox');
+                    checkbox.addEventListener('click', () => toggleTask(task.id));
+
+                    taskList.appendChild(taskElement);
+                });
+            }
+
+            function toggleTask(taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.done = !task.done;
+                    saveTasks(tasks);
+                    renderTasks();
+                }
+            }
+
+            function addTask() {
+                const titleInput = document.getElementById('task-title');
+                const countInput = document.getElementById('task-count');
+                
+                const title = titleInput.value.trim();
+                const count = countInput.value.trim();
+
+                if (!title) return;
+
+                const newTask = {
+                    id: Date.now() + Math.random(),
+                    title: title,
+                    count: count,
+                    done: false
+                };
+
+                tasks.push(newTask);
+                saveTasks(tasks);
+                renderTasks();
+
+                titleInput.value = '';
+                countInput.value = '';
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            document.getElementById('add-btn').addEventListener('click', addTask);
+            
+            document.getElementById('task-title').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addTask();
+            });
+
+            let sortActiveFirst = true;
+            document.getElementById('sort-btn').addEventListener('click', () => {
+                sortActiveFirst = !sortActiveFirst;
+                document.getElementById('sort-btn').textContent = 
+                    sortActiveFirst ? 'Active first' : 'All mixed';
+                renderTasks();
+            });
+
+            try {
+                document.getElementById('timezone').textContent = 
+                    Intl.DateTimeFormat().resolvedOptions().timeZone;
+            } catch (e) {
+                document.getElementById('timezone').textContent = 'IST';
+            }
+
+            initializeClock();
+            renderTasks();
+            requestAnimationFrame(updateClock);
+        })();
+
+        // Gallery functionality
+        let currentSlide = 0;
+        const totalSlides = 9;
+        let autoSlideInterval;
+
+        function initGallery() {
+            const dotsContainer = document.getElementById('galleryDots');
+            for(let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'gallery-dot';
+                dot.onclick = () => goToSlide(i);
+                dotsContainer.appendChild(dot);
+            }
+            
+            updateSlide();
+            startAutoSlide();
+            
+            let startX = 0;
+            let currentX = 0;
+            const gallery = document.getElementById('photoGallery');
+            
+            gallery.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                stopAutoSlide();
+            });
+            
+            gallery.addEventListener('touchmove', (e) => {
+                currentX = e.touches[0].clientX;
+            });
+            
+            gallery.addEventListener('touchend', () => {
+                const diffX = startX - currentX;
+                if (Math.abs(diffX) > 50) {
+                    if (diffX > 0) {
+                        nextSlide();
+                    } else {
+                        prevSlide();
+                    }
+                }
+                startAutoSlide();
+            });
+        }
+
+        function updateSlide() {
+            const container = document.getElementById('galleryContainer');
+            container.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            const dots = document.querySelectorAll('.gallery-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSlide();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSlide();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlide();
+            stopAutoSlide();
+            setTimeout(startAutoSlide, 3000);
+        }
+
+        function startAutoSlide() {
+            stopAutoSlide();
+            autoSlideInterval = setInterval(nextSlide, 4000);
+        }
+
+        function stopAutoSlide() {
+            if (autoSlideInterval) {
+                clearInterval(autoSlideInterval);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initGallery);
+    </script>
+</body>
+</html>
